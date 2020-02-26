@@ -30,8 +30,9 @@ int leftracket = 2;
 int rightracket = 2;
 int data = 500;
 int data2 = 500;
-
-
+int scoreleft =0;
+int scoreright = 0;
+int x = 1;
 byte rightscore;
 byte leftscore;
 
@@ -41,6 +42,36 @@ int angle = 180;
 int racketheight=2;
 int racketwidth=1;
 int balldiameter=1;
+byte smile01[] = {
+    B00111100,
+    B01000010,
+    B10010101,
+    B10100001,
+    B10100001,
+    B10010101,
+    B01000010,
+    B00111100
+  };
+byte smile02[] = {
+    B00111100,
+    B01000010,
+    B10010101,
+    B10010001,
+    B10010001,
+    B10010101,
+    B01000010,
+    B00111100
+  };
+byte smile03[] = {
+    B00111100,
+    B01000010,
+    B10100101,
+    B10010001,
+    B10010001,
+    B10100101,
+    B01000010,
+    B00111100
+  };
 
 byte zero[]={      // Used to display a '0' for when displaying the score
      B00000000,
@@ -96,7 +127,16 @@ byte four[]={        // Used to diplay a '4' for when displaying the score
   B00000000,
   B00000000
 };
-
+byte five[]={        // Used to diplay a '5' for when displaying the score
+  B00000000,
+  B00100111,
+  B00100101,
+  B00011001,
+  B00000000,
+  B00000000,
+  B00000000,
+  B00000000
+};
 
 void setSprite(byte *sprite){     //used todisplay all the rows correctly when calling score
     for(int r = 0; r < 8; r++){
@@ -105,6 +145,8 @@ void setSprite(byte *sprite){     //used todisplay all the rows correctly when c
 }
 
 void startingGame(){    //counter before a game starts
+
+  
   lc.clearDisplay(0);
   setSprite(three);
   delay(700);
@@ -118,20 +160,30 @@ void startingGame(){    //counter before a game starts
   setSprite(zero);
   delay(700);
   lc.clearDisplay(0);
-  
+  tone(2,660,100);
+  delay(150);
+  tone(2,660,100);
+  delay(300);
+  tone(2,510,100);
+  delay(100);
+  tone(2,660,100);
+  delay(300);
+  tone(2,770,100);
+  delay(550);
+  noTone(2);
 
 }
 void ballPosition(){      //moving the ball in x,y
   lc.setLed(0,xball,yball,true);
-  delay(125);
+  delay(175);
   lc.setLed(0,xball,yball,false);
 }
 void ballStarting(){    //random placement of the ball (4 dots at the center of the matrix)
   yball = rand() % 2+3;
   xball = rand() % 2+3;
   lc.setLed(0,xball,yball,true);
-  delay(200);
-  lc.setLed(0,xball,yball,false);
+  delay(175);
+  //lc.setLed(0,xball,yball,false);
   
   
 }
@@ -172,9 +224,98 @@ void wallCollisons(){
   if(yball==0||yball==7){   //vertical walls
     angle = -1*angle;
   }
-  else if(xball==0||xball==7){    //horizontal walls
-    angle = 180-angle;
+  else if(xball<0||xball>7){    //horizontal walls
+    tone(2,600,150);
+    delay(100);
+    tone(2,200,300);
+    delay(100);
+    noTone(2);
+    leftracket = 2;
+    rightracket = 2;
+
     
+    if (yball<=0||yball>=7){
+      angle = 180;
+    }
+    if (xball<0){     //rightside wins
+      angle = 0;
+      scoreright++;
+      switch (scoreright){
+        case 0:
+          setSprite(zero);
+          break;
+        case 1:
+          setSprite(one);
+          break;
+        case 2:
+          setSprite(two);
+          break;
+        case 3:
+          setSprite(three);
+          break;
+        case 4:
+          setSprite(four);
+          break;
+        case 5:
+          setSprite(five);
+          break;
+      }
+      delay(1000);
+      lc.clearDisplay(0);
+      ballStarting();
+      Rackleft();
+      Rackright();
+    }
+    else if (xball>7){      //leftside wins
+      angle = 180;
+      scoreleft++;
+      switch (scoreleft){
+        case 0:
+          setSprite(zero);
+          break;
+        case 1:
+          setSprite(one);
+          break;
+        case 2:
+          setSprite(two);
+          break;
+        case 3:
+          setSprite(three);
+          break;
+        case 4:
+          setSprite(four);
+          break;
+        case 5:
+          setSprite(five);
+          break;
+      }
+      
+      delay(1000);
+      lc.clearDisplay(0);
+      ballStarting();
+      Rackleft();
+      Rackright();
+    }
+    if (scoreleft ==5 || scoreright ==5){   //it means a win
+      delay(300);
+      lc.clearDisplay(0);
+      for (int i=0 ; i<5;i++){
+        setSprite(smile01);
+        delay(20);
+        setSprite(smile02);
+        delay(20);
+        setSprite(smile03);
+        delay(20);
+        setSprite(smile02);
+        delay(20);
+      }
+      gameOver();
+      delay(100);
+      setup();
+      scoreleft =0;
+      scoreright = 0;
+    }
+    delay(1000);
   }
   if (-360>=angle){     //used to keep the angle between 360 and -360
       angle = 360+angle;
@@ -193,7 +334,7 @@ void Rackleft(){    //moving the left racket with a joystick
         lc.setLed(0,0,leftracket+i,true);
         
         }
-        delay(2);
+        
     }
     
   }
@@ -207,7 +348,7 @@ void Rackleft(){    //moving the left racket with a joystick
         
         
         }
-        delay(2);
+        
       }
 
   }
@@ -215,7 +356,7 @@ void Rackleft(){    //moving the left racket with a joystick
     for (int i =0; i<racketheight;i++){
       lc.setLed(0,0,leftracket+i,true);
     }
-    delay(2);
+    
   }
 
 
@@ -309,6 +450,42 @@ void racketCollisions(){
  
   
 }
+void gameOver(){
+  tone(2,523,200);
+  delay(1000);
+  tone(2,523,200);
+  delay(1000);
+  tone(2,523,200);
+  delay(1000);
+  tone(2,659,700);
+  delay(700);
+  tone(2,784,500);
+  delay(500);
+   tone(2,523,200);
+  delay(1000);
+   tone(2,523,200);
+  delay(1000);
+  tone(2,659,700);
+  delay(700);
+  tone(2,784,500);
+  delay(800);
+  tone(2,784,400);
+  delay(400);
+  tone(2,884,200);
+  delay(200);
+  tone(2,784,200);
+  delay(200);
+  tone(2,687,200);
+  delay(200);
+  tone(2,659,200);
+  delay(200);
+  tone(2,579,200);
+  delay(200);
+  tone(2,519,400);
+  delay(400);
+  
+  noTone(2);
+}
 void setup() {
   // put your setup code here, to run once:
   /*
@@ -318,7 +495,10 @@ void setup() {
   lc.shutdown(0,false);
   /* Set the brightness to a medium values */
   lc.setIntensity(0,4);
+  
+  
   /* and clear the display */
+  
   startingGame();
   pinMode(leftJoy,INPUT);
   
