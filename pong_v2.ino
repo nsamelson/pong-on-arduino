@@ -7,6 +7,8 @@
 
 
 /* 
+  Pong game
+  Made by Samelson Nicolas and Yerles Mateo
 
   https://howtomechatronics.com/tutorials/arduino/8x8-led-matrix-max7219-tutorial-scrolling-text-android-control-via-bluetooth/
   by Dejan Nedelkovski, www.HowToMechatronics.com
@@ -22,30 +24,27 @@
   Robson Couto, 2019
 */
 
+
+//variables :
+
 LedControl lc=LedControl(12,11,10,2);
 unsigned long delaytime=500;
-
-
-const int leftJoy= 4;
-const int rightJoy= 5;
-int leftracket = 3;
+const int leftJoy= 0; //joysticks connected to alalog pin 
+const int rightJoy= 2;
+int leftracket = 3;   //starting position of the rackets in the led matrices
 int rightracket = 3;
-int data = 500;
-int data2 = 500;
-int scoreleft =0;
+int data = 511;   //stating the middle position of the joysticks
+int data2 = 511;
+int scoreleft =0; //score for the left side
 int scoreright = 0;
 int x = 1;
-byte rightscore;
-byte leftscore;
-
 int xball;
 int yball;
 int angle = 180;
-int racketheight=2;
-
-
-
+int racketheight=2; // the height of a racket is 2 leds high
 int screen=0;
+int buzzer = 4; // digital pin of the buzzer
+
 byte smile01[] = {    //happy
     B00111100,
     B01000010,
@@ -136,6 +135,9 @@ byte five[]={        // Used to diplay a '5' for when displaying the score
   B00000000,
   B00000000
 };
+
+// all the notes for the music "take on me"
+
 #define NOTE_B0  31
 #define NOTE_C1  33
 #define NOTE_CS1 35
@@ -231,9 +233,6 @@ byte five[]={        // Used to diplay a '5' for when displaying the score
 // change this to make the song slower or faster
 int tempo = 140;
 
-// change this to whichever pin you want to use
-int buzzer = 2;
-
 // notes of the moledy followed by the duration.
 // a 4 means a quarter note, 8 an eighteenth , 16 sixteenth, so on
 // !!negative numbers are used to represent dotted notes,
@@ -270,45 +269,52 @@ int wholenote = (60000 * 4) / tempo;
 
 int divider = 0, noteDuration = 0;
 
-void setSprite(byte *sprite){     //used todisplay all the rows correctly when calling score
+
+//FUNCTIONS :
+// 
+// 
+// 
+
+
+void setSprite(byte *sprite){     //used to display all the rows correctly when calling score
     
     for(int r = 0; r < 16; r++){
         lc.setRow(screen, r, sprite[r]);
     }
 }
-void marioStart(){
-  tone(2,660,100);
+void marioStart(){  //mario song at the beginning of a match
+  tone(buzzer,660,100);
   delay(150);
-  tone(2,660,100);
+  tone(buzzer,660,100);
   delay(300);
-  tone(2,510,100);
+  tone(buzzer,510,100);
   delay(100);
-  tone(2,660,100);
+  tone(buzzer,660,100);
   delay(300);
-  tone(2,770,100);
+  tone(buzzer,770,100);
   delay(550);
-  noTone(2);
+  noTone(buzzer);
 }
-void start(){
+void start(){   //setting the led matrices and making a timer 3,2,1,0
   marioStart();
   lc.clearDisplay(0);
   lc.clearDisplay(1);
   setSprite(three);
-  tone(2,600,400);
+  tone(buzzer,600,400);
   delay(600);
   screen = 1;
   setSprite(two);
-  tone(2,600,400);
+  tone(buzzer,600,400);
   lc.clearDisplay(0);
   delay(600);
   lc.clearDisplay(1);
   screen = 0;
   setSprite(one);
-  tone(2,600,400);
+  tone(buzzer,600,400);
   delay(600);
   screen = 1;
   setSprite(zero);
-  tone(2,800,400);
+  tone(buzzer,800,400);
   lc.clearDisplay(0);
   delay(600);
   lc.clearDisplay(1);
@@ -378,17 +384,17 @@ void calcAngleIncrement(){    //it checks the angle of the ball and in function 
      yball -= 1;
   }
 }
-void wallCollisons(){   
+void wallCollisons(){     // for vertical walls it will simply bounce but for horizontal walls, if it doesn't touch a racket it will add a point at the score of the opposite side
   
   if(yball==0||yball==7){   //vertical walls
     angle = -1*angle;
   }
   else if(xball<0||xball>15){    //horizontal walls
-    tone(2,600,150);
+    tone(buzzer,600,150);
     delay(100);
-    tone(2,200,300);
+    tone(buzzer,200,300);
     delay(100);
-    noTone(2);
+    noTone(buzzer);
     leftracket = 3;
     rightracket = 3;
 
@@ -535,7 +541,7 @@ void wallCollisons(){
   }  
   
 }
-void takeOnMe(){
+void takeOnMe(){    //funciton for the music
  // iterate over the notes of the melody.
   // Remember, the array is twice the number of notes (notes + durations)
   for (int thisNote = 0; thisNote < notes * 2; thisNote = thisNote + 2) {
@@ -564,7 +570,7 @@ void takeOnMe(){
 
 void Rackleft(){    //moving the left racket with a joystick
   data = analogRead(leftJoy);
-  if (data>=600){     //analogRead is between 0 and 1020 stg like that, and 511 is the middle
+  if (data>=600){     //analogRead is between 0 and 1023 stg like that, and 511 is the middle
     if(7>leftracket+1){
       lc.setLed(0,0,leftracket++,false);// turning off the previous led and then turning on the led further
       for (int i =0; i<racketheight;i++){
@@ -634,7 +640,7 @@ void Rackright(){     //same but for the right racket
  
   
 }
-void racketCollisions(){
+void racketCollisions(){    // collisions of the rackets with the ball, the ball will have different directions depending of the position of the racket
   if (xball ==1){   //collision for leftracket
     if (yball == leftracket+2 && angle == 225 || yball == leftracket+2 && angle == -135 ){    //top left corner
       angle = 45;
@@ -689,7 +695,7 @@ void racketCollisions(){
 }
 
 
-void setup() {
+void setup() {  // setting up
   lc.shutdown(0,false);
   lc.shutdown(1,false);
   /* Set the brightness to a medium values */
@@ -700,7 +706,7 @@ void setup() {
   ballStarting();
 }
 
-void loop() {
+void loop() {   //loop
   racketCollisions();
   wallCollisons();
   ballPosition();
@@ -708,4 +714,3 @@ void loop() {
   Rackleft();
   Rackright();
 }
-
