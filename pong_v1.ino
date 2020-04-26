@@ -24,17 +24,15 @@ LedControl lc=LedControl(12,11,10,1);
 unsigned long delaytime=500;
 
 
-const int leftJoy= 4;
+const int leftJoy= 4; //left joystick
 const int rightJoy= 5;
-int leftracket = 2;
+int leftracket = 2;   //corresponding to the racket on the screen
 int rightracket = 2;
 int data = 500;
 int data2 = 500;
-int scoreleft =0;
+int scoreleft =0;   //the score of the left side
 int scoreright = 0;
 int x = 1;
-byte rightscore;
-byte leftscore;
 
 int xball;
 int yball;
@@ -144,7 +142,7 @@ void setSprite(byte *sprite){     //used todisplay all the rows correctly when c
     }
 }
 
-void startingGame(){    //counter before a game starts
+void startingGame(){    //counter before a game starts with a sound
 
   
   lc.clearDisplay(0);
@@ -219,7 +217,7 @@ void calcAngleIncrement(){    //it checks the angle of the ball and in function 
      yball -= 1;
   }
 }
-void wallCollisons(){   
+void wallCollisons(){   // creating a simple hitbox for vertical walls and for horizontal walls it will add a point to the ennemy if the ball didn't touch the racket first
   
   if(yball==0||yball==7){   //vertical walls
     angle = -1*angle;
@@ -327,7 +325,7 @@ void wallCollisons(){
 }
 void Rackleft(){    //moving the left racket with a joystick
   data = analogRead(leftJoy);
-  if (data>=600){     //analogRead is between 0 and 1020 stg like that, and 511 is the middle
+  if (data>=600){     //analogRead is between 0 and 1022 stg like that, and 511 is the middle
     if(7>leftracket+1){
       lc.setLed(0,0,leftracket++,false);// turning off the previous led and then turning on the led further
       for (int i =0; i<racketheight;i++){
@@ -397,7 +395,7 @@ void Rackright(){     //same but for the right racket
  
   
 }
-void racketCollisions(){
+void racketCollisions(){ //redirecting the ball when it touches a racket
   if (xball ==1){   //collision for leftracket
     if (yball == leftracket+2 && angle == 225 || yball == leftracket+2 && angle == -135 ){    //top left corner
       angle = 45;
@@ -450,7 +448,7 @@ void racketCollisions(){
  
   
 }
-void gameOver(){
+void gameOver(){    // sound when a player loses 5 times
   tone(2,523,200);
   delay(1000);
   tone(2,523,200);
@@ -487,7 +485,7 @@ void gameOver(){
   noTone(2);
 }
 void setup() {
-  // put your setup code here, to run once:
+  
   /*
    The MAX72XX is in power-saving mode on startup,
    we have to do a wakeup call
@@ -495,13 +493,8 @@ void setup() {
   lc.shutdown(0,false);
   /* Set the brightness to a medium values */
   lc.setIntensity(0,4);
-  
-  
-  /* and clear the display */
-  
   startingGame();
   pinMode(leftJoy,INPUT);
-  
   ballStarting();
   
   
